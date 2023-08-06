@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reproductor de IPTV</title>
+    <link href="https://vjs.zencdn.net/7.11.4/video-js.css" rel="stylesheet">
+    <script src="https://vjs.zencdn.net/7.11.4/video.js"></script>
+    <script src="https://vjs.zencdn.net/7.11.4/videojs-http-streaming.js"></script>
+</head>
+<body>
+<div style="max-width: 800px; margin: auto;">
+    <h2>Selecciona un canal:</h2>
+    <select id="channelList" onchange="changeChannel()">
+    </select>
+    <video id="player" class="video-js vjs-default-skin" controls preload="auto" width="800" height="450" data-setup='{}'>
+        <source src="" type="application/x-mpegURL">
+    </video>
+</div>
+<script>
+    async function loadChannels() {
+        const response = await fetch('https://iptv-org.github.io/iptv/index.nsfw.m3u');
+        const data = await response.text();
+        const channels = data.split("\n").filter(line => line.startsWith("#EXTINF"));
+        const urls = data.split("\n").filter(line => !line.startsWith("#"));
+        const select = document.getElementById('channelList');
+        channels.forEach((channel, index) => {
+            const match = channel.match(/,(.*)$/);
+            const name = match ? match[1] : 'Desconocido';
+            const option = document.createElement('option');
+            option.value = urls[index];
+            option.textContent = name;
+            select.appendChild(option);
+        });
+    }
+    function changeChannel() {
+        const select = document.getElementById('channelList');
+        const player = videojs('player');
+        player.src({type: 'application/x-mpegURL', src: select.value});
+        player.play();
+    }
+    loadChannels();
+</script>
+</body>
+</html>
